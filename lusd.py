@@ -74,7 +74,7 @@ def userQuestion(text, isSecond = False):
 # Check parameters
 if len(sys.argv) == 2 and sys.argv[1] == "--help":
     print("This tool creates a PhilleConnect import file for users and groups based on LUSD CSV exports.")
-    print("Usage: philleConnectLUSDConverter.py /path/to/students.csv /path/to/teachers.csv /path/to/groups.csv /path/to/output/folder/")
+    print("Usage: lusd.py /path/to/students.csv /path/to/teachers.csv /path/to/groups.csv /path/to/output/folder/")
     print("/path/to/students.csv: A file with all students.")
     print("/path/to/teachers.csv: A file with all teachers.")
     print("/path/to/groups.csv: A file with all student-group relations.")
@@ -92,7 +92,7 @@ elif len(sys.argv) == 5:
             print("Error: Directory " + sys.argv[x] + " is not writeable.")
             sys.exit()
 else:
-    print("Usage: philleConnectLUSDConverter.py /path/to/students.csv /path/to/teachers.csv /path/to/groups.csv /path/to/output/folder/")
+    print("Usage: lusd.py /path/to/students.csv /path/to/teachers.csv /path/to/groups.csv /path/to/output/folder/")
     sys.exit()
 
 # Group questions
