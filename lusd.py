@@ -21,13 +21,14 @@ STUDENT_HEADER = {
 TEACHER_HEADER = {
     "firstname": "Vorname",
     "lastname": "Nachname",
-    "birthdate": "GebDat",
+    "birthdate": "Geburtsdatum",
+    "email": "Email",
     "short": "Lehrer_Kuerzel"
 }
 GROUP_HEADER = {
-    "name": "SLR_Name", # Written as "lastname, firstname"
-    "courseName": "Kursbezeichnung",
-    "courseTeacher": "KursLehrer"
+    "name": "Schueler_Name", # Written as "lastname, firstname"
+    "courseName": "Kurs_Bezeichnung",
+    "courseTeacher": "Fachlehrer_Kuerzel" # Kürzel
 }
 
 # DO NOT CONFIGURE ANYTHING BELOW THIS LINE
@@ -149,6 +150,7 @@ with open(sys.argv[2], "r") as f:
                     "lastname": data[TEACHER_HEADER["lastname"]].strip(),
                     "birthdate": data[TEACHER_HEADER["birthdate"]].strip(),
                     "short": data[TEACHER_HEADER["short"]].strip(),
+                    "email": data[TEACHER_HEADER["email"]].strip(),
                     "groups": []
                 }
                 if tGroup:
@@ -173,8 +175,9 @@ with open(sys.argv[3], "r") as f:
             if not group in groups:
                 groups.append(group)
             for user in users:
-                if user["lastname"] + ", " + user["firstname"] == data[GROUP_HEADER["name"]].strip():
-                    user["groups"].append(group)
+                if user["lastname"] + "," + user["firstname"] == data[GROUP_HEADER["name"]].strip().replace(" ", "") or "short" in user and user["short"] == data[GROUP_HEADER["courseTeacher"]].strip():
+                    if not group in user["groups"]:
+                        user["groups"].append(group)
 
 # Add wifi group
 if wGroup:
