@@ -19,16 +19,16 @@ STUDENT_HEADER = {
     "email": "Schueler_Email"
 }
 TEACHER_HEADER = {
-    "firstname": "Vorname",
-    "lastname": "Nachname",
-    "birthdate": "Geburtsdatum",
-    "email": "Email",
-    "short": "Lehrer_Kuerzel"
+    "firstname": "Lehrer_Vorname",
+    "lastname": "Lehrer_Nachname",
+    "birthdate": "Lehrer_Geburtsdatum",
+    "email": "Lehrer_Email",
+    "short": "Kuerzel"
 }
 GROUP_HEADER = {
-    "name": "Schueler_Name", # Written as "lastname, firstname"
+    "courseStudent": "Schueler_Name", # Written as "lastname, firstname"
     "courseName": "Kurs_Bezeichnung",
-    "courseTeacher": "Fachlehrer_Kuerzel" # Kürzel
+    "courseTeacher": "Fachlehrer_Kuerzel"
 }
 
 # DO NOT CONFIGURE ANYTHING BELOW THIS LINE
@@ -109,24 +109,33 @@ with open(sys.argv[1], "r") as f:
         data = line.split(CSV_DELIMITER)
         if first:
             first = False
-            index = 0
-            for d in data:
-                for key, value in STUDENT_HEADER.items():
+            for key, value in STUDENT_HEADER.items():
+                index = 0
+                found = False
+                for d in data:
                     if value == d:
                         STUDENT_HEADER[key] = index
-                index += 1
+                        found = True
+                    index += 1
+                if not found:
+                    print('ERROR while setting students: Colum for '+d+' not found!')
+                    exit(1)
+            print('reading students...')
         else:
             if not data[STUDENT_HEADER["firstname"]] == "" and not data[STUDENT_HEADER["lastname"]] == "":
                 group = fixGroupName(data[STUDENT_HEADER["class"]].strip())
                 if not group in groups:
                     groups.append(group)
-                user = {
-                    "firstname": data[STUDENT_HEADER["firstname"]].strip(),
-                    "lastname": data[STUDENT_HEADER["lastname"]].strip(),
-                    "birthdate": data[STUDENT_HEADER["birthdate"]].strip(),
-                    "email": data[STUDENT_HEADER["email"]].strip(),
-                    "groups": [group]
-                }
+                try:
+                    user = {
+                        "firstname": data[STUDENT_HEADER["firstname"]].strip(),
+                        "lastname": data[STUDENT_HEADER["lastname"]].strip(),
+                        "birthdate": data[STUDENT_HEADER["birthdate"]].strip(),
+                        "email": data[STUDENT_HEADER["email"]].strip(),
+                        "groups": [group]
+                    }
+                except:
+                    print('did not find all data, are the colums defined for all rows? (solution: define "end of line"-colum with some string in spreadsheet!)')
                 if sGroup:
                     user["groups"].append("students")
                 users.append(user)
@@ -137,22 +146,31 @@ with open(sys.argv[2], "r") as f:
         data = line.split(CSV_DELIMITER)
         if first:
             first = False
-            index = 0
-            for d in data:
-                for key, value in TEACHER_HEADER.items():
+            for key, value in TEACHER_HEADER.items():
+                index = 0
+                found = False
+                for d in data:
                     if value == d:
                         TEACHER_HEADER[key] = index
-                index += 1
+                        found = True
+                    index += 1
+                if not found:
+                    print('ERROR while setting teachers: Colum for '+d+' not found!')
+                    exit(1)
+            print('reading teachers...')
         else:
             if not data[TEACHER_HEADER["firstname"]] == "" and not data[TEACHER_HEADER["lastname"]] == "":
-                user = {
-                    "firstname": data[TEACHER_HEADER["firstname"]].strip(),
-                    "lastname": data[TEACHER_HEADER["lastname"]].strip(),
-                    "birthdate": data[TEACHER_HEADER["birthdate"]].strip(),
-                    "short": data[TEACHER_HEADER["short"]].strip(),
-                    "email": data[TEACHER_HEADER["email"]].strip(),
-                    "groups": []
-                }
+                try:
+                    user = {
+                        "firstname": data[TEACHER_HEADER["firstname"]].strip(),
+                        "lastname": data[TEACHER_HEADER["lastname"]].strip(),
+                        "birthdate": data[TEACHER_HEADER["birthdate"]].strip(),
+                        "email": data[TEACHER_HEADER["email"]].strip(),
+                        "short": data[TEACHER_HEADER["short"]].strip(),
+                        "groups": []
+                    }
+                except:
+                    print('did not find all data, are the colums defined for all rows? (solution: define "end of line"-colum with some string in spreadsheet!)')
                 if tGroup:
                     user["groups"].append("teachers")
                 users.append(user)
@@ -164,20 +182,26 @@ with open(sys.argv[3], "r") as f:
         data = line.split(CSV_DELIMITER)
         if first:
             first = False
-            index = 0
-            for d in data:
-                for key, value in GROUP_HEADER.items():
+            for key, value in GROUP_HEADER.items():
+                index = 0
+                found = False
+                for d in data:
                     if value == d:
                         GROUP_HEADER[key] = index
-                index += 1
+                        found = True
+                    index += 1
+                if not found:
+                    print('ERROR while setting groups: Colum for '+d+' not found!')
+                    exit(1)
+            print('reading groups...')
         else:
             group = fixGroupName(data[GROUP_HEADER["courseName"]].strip() + "_" + data[GROUP_HEADER["courseTeacher"]].strip())
+            username = data[GROUP_HEADER["courseStudent"]].strip()
             if not group in groups:
                 groups.append(group)
             for user in users:
-                if user["lastname"] + "," + user["firstname"] == data[GROUP_HEADER["name"]].strip().replace(" ", "") or "short" in user and user["short"] == data[GROUP_HEADER["courseTeacher"]].strip():
-                    if not group in user["groups"]:
-                        user["groups"].append(group)
+                if user["lastname"] + ", " + user["firstname"] == username:
+                    user["groups"].append(group)
 
 # Add wifi group
 if wGroup:
