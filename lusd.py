@@ -200,7 +200,7 @@ with open(sys.argv[3], "r") as f:
             if not group in groups:
                 groups.append(group)
             for user in users:
-                if user["lastname"] + ", " + user["firstname"] == username:
+                if (user["lastname"] + ", " + user["firstname"] == username) or ("short" in user and user["short"] == data[GROUP_HEADER["courseTeacher"]].strip()):
                     user["groups"].append(group)
 
 # Add wifi group
