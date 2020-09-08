@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 # PhilleConnect import data creator for LUSD data
-# © 2020 Johannes Kreutz.
+# © 2020 Johannes Kreutz, Dirk Winkel.
 
 # Include dependencies
 import os
@@ -14,7 +14,7 @@ CSV_DELIMITER = ";"
 STUDENT_HEADER = {
     "firstname": "Schueler_Vorname",
     "lastname": "Schueler_Nachname",
-    "class": "Klassen_Klassenbezeichnung",
+    "class": "Schueler_Klasse",
     "birthdate": "Schueler_Geburtsdatum",
     "email": "Schueler_Email"
 }
@@ -26,7 +26,7 @@ TEACHER_HEADER = {
     "short": "Kuerzel"
 }
 GROUP_HEADER = {
-    "courseStudent": "Schueler_Name", # Written as "lastname, firstname"
+    #"courseStudent": "Schueler_Name", # Written as "lastname, firstname"
     "courseName": "Kurs_Bezeichnung",
     "courseTeacher": "Fachlehrer_Kuerzel"
 }
@@ -46,7 +46,7 @@ def checkFolderPaths(PATH):
         return 3
     return 0
 
-def fixGroupName(name):
+def fixSpecialChars(name):
     name = name.replace(" ", "_")
     name = name.replace("ä", "ae")
     name = name.replace("ö", "oe")
@@ -55,6 +55,7 @@ def fixGroupName(name):
     name = name.replace("Ö", "Oe")
     name = name.replace("Ü", "Ue")
     name = name.replace("ß", "ss")
+    name = name.translate ({ord(c): "" for c in "!@#$%^&*()[]{};:,./<>?\|`''~=+"})
     name = unicodedata.normalize('NFD', name).encode('ascii', 'ignore').decode("utf-8")
     return name
 
@@ -76,12 +77,12 @@ def userQuestion(text, isSecond = False):
 if len(sys.argv) == 2 and sys.argv[1] == "--help":
     print("This tool creates a PhilleConnect import file for users and groups based on LUSD CSV exports.")
     print("Usage: lusd.py /path/to/students.csv /path/to/teachers.csv /path/to/groups.csv /path/to/output/folder/")
-    print("/path/to/students.csv: A file with all students.")
+#    print("/path/to/students.csv: A file with all students.")
     print("/path/to/teachers.csv: A file with all teachers.")
     print("/path/to/groups.csv: A file with all student-group relations.")
     print("/path/to/output/folder/: The output file will be generated in this folder.")
-elif len(sys.argv) == 5:
-    for x in range(1, 4):
+elif len(sys.argv) == 4:
+    for x in range(1, 3):
         result = checkFolderPaths(sys.argv[x])
         if result == 1:
             print("Error: No such file or directory: " + sys.argv[x])
@@ -93,7 +94,7 @@ elif len(sys.argv) == 5:
             print("Error: Directory " + sys.argv[x] + " is not writeable.")
             sys.exit()
 else:
-    print("Usage: lusd.py /path/to/students.csv /path/to/teachers.csv /path/to/groups.csv /path/to/output/folder/")
+    print("Usage: lusd.py /path/to/teachers.csv /path/to/groups.csv /path/to/output/folder/")
     sys.exit()
 
 # Group questions
@@ -104,7 +105,7 @@ wGroup = userQuestion("Do you want to add all users to the 'wifi' group?")
 # Read files
 # Students
 first = True
-with open(sys.argv[1], "r") as f:
+with open(sys.argv[2], "r") as f:
     for line in f.readlines():
         data = line.split(CSV_DELIMITER)
         if first:
@@ -118,12 +119,13 @@ with open(sys.argv[1], "r") as f:
                         found = True
                     index += 1
                 if not found:
-                    print('ERROR while setting students: Colum for '+d+' not found!')
+                    print('ERROR while setting students: Colum for '+value+' not found!')
+                    print('(I saw: '+data+' )')
                     exit(1)
             print('reading students...')
         else:
             if not data[STUDENT_HEADER["firstname"]] == "" and not data[STUDENT_HEADER["lastname"]] == "":
-                group = fixGroupName(data[STUDENT_HEADER["class"]].strip())
+                group = fixSpecialChars(data[STUDENT_HEADER["class"]].strip())
                 if not group in groups:
                     groups.append(group)
                 try:
@@ -136,12 +138,23 @@ with open(sys.argv[1], "r") as f:
                     }
                 except:
                     print('did not find all data, are the colums defined for all rows? (solution: define "end of line"-colum with some string in spreadsheet!)')
+                    exit(1)
                 if sGroup:
                     user["groups"].append("students")
-                users.append(user)
+                exists = False
+                for u in users:
+                    if ((u['firstname'] == user['firstname'])
+                            and (u['lastname'] == user['lastname'])
+                            and (u['birthdate'] == user['birthdate'])):
+                        exists = True
+                        #if u['class'] != user['class']:
+                        #    print('ERRORR: Found same firstname, lastname and birthdate in different classes:\n'+u+'\n'+user)
+                        break
+                if not exists:
+                    users.append(user)
 # Teachers
 first = True
-with open(sys.argv[2], "r") as f:
+with open(sys.argv[1], "r") as f:
     for line in f.readlines():
         data = line.split(CSV_DELIMITER)
         if first:
@@ -155,7 +168,7 @@ with open(sys.argv[2], "r") as f:
                         found = True
                     index += 1
                 if not found:
-                    print('ERROR while setting teachers: Colum for '+d+' not found!')
+                    print('ERROR while setting teachers: Colum for '+value+' not found!')
                     exit(1)
             print('reading teachers...')
         else:
@@ -177,7 +190,7 @@ with open(sys.argv[2], "r") as f:
 
 # Group connections
 first = True
-with open(sys.argv[3], "r") as f:
+with open(sys.argv[2], "r") as f:
     for line in f.readlines():
         data = line.split(CSV_DELIMITER)
         if first:
@@ -191,16 +204,22 @@ with open(sys.argv[3], "r") as f:
                         found = True
                     index += 1
                 if not found:
-                    print('ERROR while setting groups: Colum for '+d+' not found!')
+                    print('ERROR while setting groups: Colum for '+value+' not found!')
                     exit(1)
             print('reading groups...')
         else:
-            group = fixGroupName(data[GROUP_HEADER["courseName"]].strip() + "_" + data[GROUP_HEADER["courseTeacher"]].strip())
-            username = data[GROUP_HEADER["courseStudent"]].strip()
+            group = fixSpecialChars(data[GROUP_HEADER["courseName"]].strip() + "_" + data[GROUP_HEADER["courseTeacher"]].strip())
+            #username = data[GROUP_HEADER["courseStudent"]].strip()
             if not group in groups:
                 groups.append(group)
             for user in users:
-                if (user["lastname"] + ", " + user["firstname"] == username) or ("short" in user and user["short"] == data[GROUP_HEADER["courseTeacher"]].strip()):
+                if (user["firstname"] == data[STUDENT_HEADER["firstname"]].strip() and
+                        user["lastname"] == data[STUDENT_HEADER["lastname"]].strip() and
+                        user["birthdate"] == data[STUDENT_HEADER["birthdate"]].strip()):
+                    user["groups"].append(group)
+                if ("short" in user 
+                        and user["short"] == data[GROUP_HEADER["courseTeacher"]].strip()
+                        and group not in user['groups']):
                     user["groups"].append(group)
 
 # Add wifi group
@@ -215,7 +234,7 @@ output = {
     "users": users,
     "groups": groups
 }
-outputPath = sys.argv[4]
+outputPath = sys.argv[3]
 if not outputPath.endswith("/"):
     outputPath += "/"
 outputPath += "philleConnectImport.json"
