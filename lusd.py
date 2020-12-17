@@ -126,7 +126,7 @@ with open(sys.argv[2], "r") as f:
         else:
             if not data[STUDENT_HEADER["firstname"]] == "" and not data[STUDENT_HEADER["lastname"]] == "":
                 group = fixSpecialChars(data[STUDENT_HEADER["class"]].strip())
-                if not group in groups:
+                if (not group in groups) and (group != ''):
                     groups.append(group)
                 try:
                     user = {
@@ -210,7 +210,7 @@ with open(sys.argv[2], "r") as f:
         else:
             group = fixSpecialChars(data[GROUP_HEADER["courseName"]].strip() + "_" + data[GROUP_HEADER["courseTeacher"]].strip())
             #username = data[GROUP_HEADER["courseStudent"]].strip()
-            if not group in groups:
+            if (not group in groups) and (group != ''):
                 groups.append(group)
             for user in users:
                 if (user["firstname"] == data[STUDENT_HEADER["firstname"]].strip() and
