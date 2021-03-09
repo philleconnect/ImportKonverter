@@ -55,7 +55,7 @@ def fixSpecialChars(name):
     name = name.replace("Ö", "Oe")
     name = name.replace("Ü", "Ue")
     name = name.replace("ß", "ss")
-    name = name.translate ({ord(c): "" for c in "!@#$%^&*()[]{};:,./<>?\|`''~=+"})
+    name = name.translate ({ord(c): "" for c in "!@#$%^&*()[]{};:,./<>?\|`''~=+'"})
     name = unicodedata.normalize('NFD', name).encode('ascii', 'ignore').decode("utf-8")
     return name
 
@@ -126,12 +126,14 @@ with open(sys.argv[2], "r") as f:
         else:
             if not data[STUDENT_HEADER["firstname"]] == "" and not data[STUDENT_HEADER["lastname"]] == "":
                 group = fixSpecialChars(data[STUDENT_HEADER["class"]].strip())
-                if (not group in groups) and (group != ''):
+                if (group == ''):
+                    continue;
+                if (not group in groups):
                     groups.append(group)
                 try:
                     user = {
-                        "firstname": data[STUDENT_HEADER["firstname"]].strip(),
-                        "lastname": data[STUDENT_HEADER["lastname"]].strip(),
+                        "firstname": data[STUDENT_HEADER["firstname"]].strip().replace("'", ""),
+                        "lastname": data[STUDENT_HEADER["lastname"]].strip().replace("'", ""),
                         "birthdate": data[STUDENT_HEADER["birthdate"]].strip(),
                         "email": data[STUDENT_HEADER["email"]].strip(),
                         "groups": [group]
@@ -175,8 +177,8 @@ with open(sys.argv[1], "r") as f:
             if not data[TEACHER_HEADER["firstname"]] == "" and not data[TEACHER_HEADER["lastname"]] == "":
                 try:
                     user = {
-                        "firstname": data[TEACHER_HEADER["firstname"]].strip(),
-                        "lastname": data[TEACHER_HEADER["lastname"]].strip(),
+                        "firstname": data[TEACHER_HEADER["firstname"]].strip().replace("'", ""),
+                        "lastname": data[TEACHER_HEADER["lastname"]].strip().replace("'", ""),
                         "birthdate": data[TEACHER_HEADER["birthdate"]].strip(),
                         "email": data[TEACHER_HEADER["email"]].strip(),
                         "short": data[TEACHER_HEADER["short"]].strip(),
@@ -210,11 +212,13 @@ with open(sys.argv[2], "r") as f:
         else:
             group = fixSpecialChars(data[GROUP_HEADER["courseName"]].strip() + "_" + data[GROUP_HEADER["courseTeacher"]].strip())
             #username = data[GROUP_HEADER["courseStudent"]].strip()
-            if (not group in groups) and (group != ''):
+            if (group == ''):
+                continue;
+            if (not group in groups):
                 groups.append(group)
             for user in users:
-                if (user["firstname"] == data[STUDENT_HEADER["firstname"]].strip() and
-                        user["lastname"] == data[STUDENT_HEADER["lastname"]].strip() and
+                if (user["firstname"] == data[STUDENT_HEADER["firstname"]].strip().replace("'", "") and
+                        user["lastname"] == data[STUDENT_HEADER["lastname"]].strip().replace("'", "") and
                         user["birthdate"] == data[STUDENT_HEADER["birthdate"]].strip()):
                     user["groups"].append(group)
                 if ("short" in user 
