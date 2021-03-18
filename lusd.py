@@ -55,7 +55,7 @@ def fixSpecialChars(name):
     name = name.replace("Ö", "Oe")
     name = name.replace("Ü", "Ue")
     name = name.replace("ß", "ss")
-    name = name.translate ({ord(c): "" for c in "!@#$%^&*()[]{};:,./<>?\|`''~=+'"})
+    name = name.translate ({ord(c): "" for c in "!@#$%^&*()[]{};:,./<>?\|`'~=+"})
     name = unicodedata.normalize('NFD', name).encode('ascii', 'ignore').decode("utf-8")
     return name
 
@@ -140,6 +140,9 @@ with open(sys.argv[2], "r") as f:
                     }
                 except:
                     print('did not find all data, are the colums defined for all rows? (solution: define "end of line"-colum with some string in spreadsheet!)')
+                    print('Stopped at Student '+
+                            data[STUDENT_HEADER["firstname"]]+
+                            data[STUDENT_HEADER["lastname"]])
                     exit(1)
                 if sGroup:
                     user["groups"].append("students")
@@ -243,5 +246,5 @@ if not outputPath.endswith("/"):
     outputPath += "/"
 outputPath += "philleConnectImport.json"
 with open(outputPath, "w") as f:
-    f.write(json.dumps(output))
+    f.write(json.dumps(output, indent=4))
 print("Done.")
