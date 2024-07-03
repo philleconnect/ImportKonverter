@@ -1,3 +1,5 @@
+__Archived: Not actively maintained anymore!__
+
 # ImportKonverter
 Konverter-Skripte für verschiedene Datenquellen
 
